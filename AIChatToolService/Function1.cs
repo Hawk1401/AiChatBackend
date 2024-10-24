@@ -112,8 +112,6 @@ namespace AIChatToolService
             public string text;
         }
 
-
-
         [Function("AnswerQuestions")]
         public async Task<HttpResponseData> RunAnwerAsync([HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequestData req)
         {
