@@ -10,6 +10,8 @@ using Microsoft.Azure.Functions.Worker.Http;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Reflection.PortableExecutable;
+using Azure.Identity;
+using Azure.Security.KeyVault.Secrets;
 
 namespace AIChatToolService
 {
@@ -36,6 +38,21 @@ namespace AIChatToolService
             }
             public string message;
             public bool final { get; set; }
+        }
+
+        public async Task<string> getApiKey()
+        {
+            var keyVaultUri = new Uri("https://aichattoolkeymanager.vault.azure.net/");
+
+            // Use DefaultAzureCredential to fetch the secret (this handles the Managed Identity authentication)
+            var client = new SecretClient(vaultUri: keyVaultUri, credential: new DefaultAzureCredential());
+
+            // Get the secret
+            KeyVaultSecret secret = await client.GetSecretAsync("key1");
+
+            // Use the secret
+            string apiKey = secret.Value;
+            return apiKey;
         }
 
         [Function("AskForUserStroy")]
@@ -129,6 +146,22 @@ namespace AIChatToolService
             return response;
         }
 
+
+        [Function("test")]
+        public async Task<HttpResponseData> test([HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequestData req)
+        {
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            response.Headers.Add("Content-Type", "application/json");
+            try
+            {
+                await response.WriteStringAsync(await getApiKey());
+                return response;
+            }
+            catch (Exception ex) {
+                await response.WriteStringAsync(ex.InnerException.ToString());
+                return response;
+            }
+        }
 
 
         private string createPromtForUserstory(string titel, string description, bool alowQuestions)
