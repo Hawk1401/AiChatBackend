@@ -56,7 +56,7 @@ namespace AIChatToolService
         }
 
         [Function("AskForUserStroy")]
-        public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req)
+        public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req)
         {
             AzureOpenAIClient azureClient = new(
             new Uri("https://aiserviceforchattool.openai.azure.com/"),
@@ -113,7 +113,7 @@ namespace AIChatToolService
         }
 
         [Function("AnswerQuestions")]
-        public async Task<HttpResponseData> RunAnwerAsync([HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequestData req)
+        public async Task<HttpResponseData> RunAnwerAsync([HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req)
         {
             AzureOpenAIClient azureClient = new(
             new Uri("https://aiserviceforchattool.openai.azure.com/"),
@@ -146,7 +146,7 @@ namespace AIChatToolService
 
 
         [Function("test")]
-        public async Task<HttpResponseData> test([HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequestData req)
+        public async Task<HttpResponseData> test([HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequestData req)
         {
             var response = req.CreateResponse(HttpStatusCode.OK);
             response.Headers.Add("Content-Type", "application/json");
