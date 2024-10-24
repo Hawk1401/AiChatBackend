@@ -40,59 +40,60 @@ namespace AIChatToolService
             public bool final { get; set; }
         }
 
-        public async Task<string> getApiKey()
+        public string getApiKey()
         {
-            var keyVaultUri = new Uri("https://aichattoolkeymanager.vault.azure.net/");
-
-            // Use DefaultAzureCredential to fetch the secret (this handles the Managed Identity authentication)
-            var client = new SecretClient(vaultUri: keyVaultUri, credential: new DefaultAzureCredential());
-
-            // Get the secret
-            KeyVaultSecret secret = await client.GetSecretAsync("key1");
-
-            // Use the secret
-            string apiKey = secret.Value;
-            return apiKey;
+            return System.Environment.GetEnvironmentVariable("OpenAIKey1") ?? throw new Exception("The API Key is missing");
         }
 
         [Function("AskForUserStroy")]
         public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req)
         {
-            AzureOpenAIClient azureClient = new(
-            new Uri("https://aiserviceforchattool.openai.azure.com/"),
-            new ApiKeyCredential("APIKEY"));
-            ChatClient chatClient = azureClient.GetChatClient("gpt-4o-mini");
-            var titel = "Drwaing an Empty Grid";
-            var description = "We want to Draw an empty grid for the storage of palets. Use a static json from the backend team";
-            string requestBody = string.Empty;
-
-            using (StreamReader streamReader = new(req.Body))
-            {
-                requestBody = await streamReader.ReadToEndAsync();
-            }
-            AskForUserStroyType data = JsonConvert.DeserializeObject<AskForUserStroyType>(requestBody)!;
-
-
-            ChatCompletion completion = chatClient.CompleteChat(
-                [new UserChatMessage(createPromtForUserstory(data.titel, data.description, data.alowQuestions))]);
-
-            Console.WriteLine($"{completion.Role}: {completion.Content[0].Text}");
-
-            var response = req.CreateResponse(HttpStatusCode.OK);
             try
             {
-                response.Headers.Add("Content-Type", "application/json");
-                var final = !completion.Content[0].Text.ToLower().StartsWith("i need more information");
-                string responseData = JsonConvert.SerializeObject(new AskForUserResponse(completion.Content[0].Text, final))!;
 
-                await response.WriteStringAsync(responseData);
+
+                AzureOpenAIClient azureClient = new(
+                new Uri("https://aiserviceforchattool.openai.azure.com/"),
+                new ApiKeyCredential(getApiKey()));
+                ChatClient chatClient = azureClient.GetChatClient("gpt-4o-mini");
+                var titel = "Drwaing an Empty Grid";
+                var description = "We want to Draw an empty grid for the storage of palets. Use a static json from the backend team";
+                string requestBody = string.Empty;
+
+                using (StreamReader streamReader = new(req.Body))
+                {
+                    requestBody = await streamReader.ReadToEndAsync();
+                }
+                AskForUserStroyType data = JsonConvert.DeserializeObject<AskForUserStroyType>(requestBody)!;
+
+
+                ChatCompletion completion = chatClient.CompleteChat(
+                    [new UserChatMessage(createPromtForUserstory(data.titel, data.description, data.alowQuestions))]);
+
+                Console.WriteLine($"{completion.Role}: {completion.Content[0].Text}");
+
+                var response = req.CreateResponse(HttpStatusCode.OK);
+                try
+                {
+                    response.Headers.Add("Content-Type", "application/json");
+                    var final = !completion.Content[0].Text.ToLower().StartsWith("i need more information");
+                    string responseData = JsonConvert.SerializeObject(new AskForUserResponse(completion.Content[0].Text, final))!;
+
+                    await response.WriteStringAsync(responseData);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.ToString());
+                }
+
+                return response;
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.ToString());
+                var response = req.CreateResponse(HttpStatusCode.InternalServerError);
+                await response.WriteStringAsync(ex.ToString());
+                return response;
             }
-
-            return response;
         }
 
 
@@ -117,7 +118,7 @@ namespace AIChatToolService
         {
             AzureOpenAIClient azureClient = new(
             new Uri("https://aiserviceforchattool.openai.azure.com/"),
-            new ApiKeyCredential("APIKEY"));
+            new ApiKeyCredential(getApiKey()));
             ChatClient chatClient = azureClient.GetChatClient("gpt-4o-mini");
             string requestBody = string.Empty;
             using (StreamReader streamReader = new(req.Body))
