@@ -152,7 +152,8 @@ namespace AIChatToolService
             response.Headers.Add("Content-Type", "application/json");
             try
             {
-                await response.WriteStringAsync(System.Environment.GetEnvironmentVariable("OpenAIKey1"));
+                var secret = System.Environment.GetEnvironmentVariable("OpenAIKey1") ?? "No Data";
+                await response.WriteStringAsync(secret);
                 return response;
             }
             catch (Exception ex) {
