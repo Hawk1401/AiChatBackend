@@ -96,9 +96,9 @@ namespace AIChatToolService
         {
             if (language == Language.German)
             {
-                return $"Bitte hilf mir diese Nachricht zu verbessern. Deine antwort soll nur aus der verbesserten naricht bestehen und nichts weiters: ${message}";
+                return $"Bitte hilf mir, diese Nachricht zu verbessern. Deine Antwort soll nur aus der verbesserten Nachricht bestehen und nichts weiter: ${message}";
             }
-            return $"Bitte hilf mir diese Nachricht zu verbessern. Deine antwort soll nur aus der verbesserten naricht bestehen und nichts weiters. Deine Antwort soll in Englisch sein: ${message}";
+            return $"Bitte hilf mir, diese Nachricht zu verbessern. Deine Antwort soll nur aus der verbesserten Nachricht bestehen und nichts weiter. Deine Antwort sollte auf Englisch sein: ${message}";
         }
     }
 }
