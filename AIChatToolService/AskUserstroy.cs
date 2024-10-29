@@ -15,10 +15,10 @@ using Azure.Security.KeyVault.Secrets;
 
 namespace AIChatToolService
 {
-    public class Function1
+    public class AskUserstroy
     {
-        private readonly ILogger<Function1> _logger;
-        public Function1(ILogger<Function1> logger)
+        private readonly ILogger<AskUserstroy> _logger;
+        public AskUserstroy(ILogger<AskUserstroy> logger)
         {
             _logger = logger;
         }
@@ -143,25 +143,6 @@ namespace AIChatToolService
 
             await response.WriteStringAsync(resultData);
             return response;
-        }
-
-
-        [Function("test")]
-        public async Task<HttpResponseData> test([HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequestData req)
-        {
-            var response = req.CreateResponse(HttpStatusCode.OK);
-            response.Headers.Add("Content-Type", "application/json");
-            try
-            {
-                var secret = System.Environment.GetEnvironmentVariable("OpenAIKey1") ?? "No Data";
-                await response.WriteStringAsync(secret);
-                return response;
-            }
-            catch (Exception ex) {
-                await response.WriteStringAsync(ex.InnerException.ToString());
-                return response;
-            }
-
         }
 
 
