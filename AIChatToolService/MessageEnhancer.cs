@@ -33,6 +33,8 @@ namespace AIChatToolService
         {
             public string Message;
             public Language Language;
+            public MessageType MessageType;
+            public MessageLangueStyle MessageLangueStyle;
         }
         class EnhancedMessageResult
         {
@@ -47,7 +49,16 @@ namespace AIChatToolService
             German,
             English
         }
-
+        enum MessageType
+        {
+            Chat,
+            Email
+        }
+        enum MessageLangueStyle
+        {
+            Formal,
+            Casual
+        }
         [Function("EnhancedMessage")]
         public async Task<HttpResponseData> RunEnhancedMessageAsync([HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req)
         {
@@ -70,7 +81,7 @@ namespace AIChatToolService
 
 
             ChatCompletion completion = chatClient.CompleteChat(
-                [new UserChatMessage(createPromtEnhancedMessage(data.Message, data.Language))]);
+                [new UserChatMessage(createPromtEnhancedMessage(data.Message, data.Language, data.MessageType, data.MessageLangueStyle))]);
 
 
             Console.WriteLine($"{completion.Role}: {completion.Content[0].Text}");
@@ -92,13 +103,41 @@ namespace AIChatToolService
         }
 
 
-        private string createPromtEnhancedMessage(string message, Language language)
+        private string createPromtEnhancedMessage(string message, Language language, MessageType type, MessageLangueStyle style)
         {
+            var promt = "Bitte verbessere diese Nachricht. Deine Antwort soll ausschließlich die überarbeitete Version der Nachricht enthalten.";
+
+            if (language == Language.English)
+            {
+                promt += "Bitte antworte auf Englisch.";
+            }
+
             if (language == Language.German)
             {
-                return $"Bitte hilf mir, diese Nachricht zu verbessern. Deine Antwort soll nur aus der verbesserten Nachricht bestehen und nichts weiter: ${message}";
+                promt += "Bitte antworte auf Deutsch.";
             }
-            return $"Bitte hilf mir, diese Nachricht zu verbessern. Deine Antwort soll nur aus der verbesserten Nachricht bestehen und nichts weiter. Deine Antwort sollte auf Englisch sein: ${message}";
+
+            if (type == MessageType.Email)
+            {
+                promt += "Die Nachricht ist eine E-Mail. Bitte füge auch eine passende Betreffzeile hinzu.";
+            }
+            if (type == MessageType.Chat)
+            {
+                promt += "Die Nachricht ist eine Chat-Nachricht.";
+            }
+
+            if (style == MessageLangueStyle.Casual)
+            {
+                promt += "Bitte verwende eine umgangssprachliche Formulierung.";
+            }
+
+            if (style == MessageLangueStyle.Formal)
+            {
+                promt += "Bitte formuliere die Nachricht in einem förmlichen Stil.";
+            }
+
+
+                return promt + $"Nun folgt die Nachricht, die verbessert werden soll: ${message}";
         }
     }
 }
